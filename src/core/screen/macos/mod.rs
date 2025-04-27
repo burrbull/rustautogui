@@ -68,7 +68,10 @@ impl Screen {
         let dimensions = (self.screen_width, self.screen_height);
         dimensions
     }
-    #[cfg(not(feature = "lite"))]
+}
+
+#[cfg(not(feature = "lite"))]
+impl Screen {
     #[allow(dead_code)]
     /// return region dimension which is set up when template is precalculated
     pub fn region_dimension(&self) -> (u32, u32) {
@@ -78,7 +81,7 @@ impl Screen {
         );
         dimensions
     }
-    #[cfg(not(feature = "lite"))]
+
     #[allow(dead_code)]
     /// executes convert_bitmap_to_rgba, meaning it converts Vector of values to RGBA and crops the image
     /// as inputted region area. Not used anywhere at the moment
@@ -95,7 +98,7 @@ impl Screen {
             imgtools::cut_screen_region(x, y, width, height, &image);
         Ok(cropped_image)
     }
-    #[cfg(not(feature = "lite"))]
+
     /// executes convert_bitmap_to_grayscale, meaning it converts Vector of values to grayscale and crops the image
     /// as inputted region area
     pub fn grab_screen_image_grayscale(
@@ -111,14 +114,14 @@ impl Screen {
             imgtools::cut_screen_region(*x, *y, *width, *height, &image);
         Ok(cropped_image)
     }
-    #[cfg(not(feature = "lite"))]
+
     /// captures and saves screenshot of monitors
     pub fn grab_screenshot(&mut self, image_path: &str) -> Result<(), AutoGuiError> {
         self.capture_screen()?;
         let image = self.convert_bitmap_to_rgba()?;
         Ok(image.save(image_path)?)
     }
-    #[cfg(not(feature = "lite"))]
+
     /// first order capture screen function. it captures screen image and stores it as vector in self.pixel_data
     fn capture_screen(&mut self) -> Result<(), AutoGuiError> {
         let image = self
@@ -145,7 +148,7 @@ impl Screen {
         self.screen_data.pixel_data = pixel_data;
         Ok(())
     }
-    #[cfg(not(feature = "lite"))]
+
     /// convert vector to Luma Imagebuffer
     fn convert_bitmap_to_grayscale(&self) -> Result<ImageBuffer<Luma<u8>, Vec<u8>>, AutoGuiError> {
         let mut grayscale_data =
@@ -174,7 +177,7 @@ impl Screen {
         );
         Ok(image)
     }
-    #[cfg(not(feature = "lite"))]
+
     /// convert vector to RGBA ImageBuffer
     fn convert_bitmap_to_rgba(&self) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, AutoGuiError> {
         ImageBuffer::from_raw(

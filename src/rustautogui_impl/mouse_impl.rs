@@ -5,12 +5,18 @@ use crate::AutoGuiError;
 
 impl crate::RustAutoGui {
     pub fn get_mouse_position(&self) -> Result<(i32, i32), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return self.mouse.get_mouse_position();
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::get_mouse_position());
-        #[cfg(target_os = "macos")]
-        return Mouse::get_mouse_position();
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.get_mouse_position()
+            }
+            target_os = "windows" => {
+                Mouse::get_mouse_position();
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::get_mouse_position()
+            }
+        }
     }
 
     /// Move mouse to x,y pixel coordinate
@@ -21,17 +27,18 @@ impl crate::RustAutoGui {
             )));
         }
 
-        #[cfg(target_os = "windows")]
-        {
-            Mouse::move_mouse_to_pos(x as i32, y as i32, moving_time);
-            Ok(())
+        cfg_select! {
+            target_os = "windows" => {
+                Mouse::move_mouse_to_pos(x as i32, y as i32, moving_time);
+                Ok(())
+            }
+            target_os = "linux" => {
+                self.mouse.move_mouse_to_pos(x as i32, y as i32, moving_time)
+            }
+            target_os = "macos" => {
+                Mouse::move_mouse_to_pos(x as i32, y as i32, moving_time)
+            }
         }
-        #[cfg(target_os = "linux")]
-        return self
-            .mouse
-            .move_mouse_to_pos(x as i32, y as i32, moving_time);
-        #[cfg(target_os = "macos")]
-        return Mouse::move_mouse_to_pos(x as i32, y as i32, moving_time);
     }
 
     /// Very similar to move mouse to pos, but takes Option<x> and Option<y>, where None value just keeps the current mouse x or y value
@@ -54,15 +61,18 @@ impl crate::RustAutoGui {
             )));
         }
 
-        #[cfg(target_os = "windows")]
-        {
-            Mouse::move_mouse_to_pos(x, y, moving_time);
-            Ok(())
+        cfg_select! {
+            target_os = "windows" => {
+                Mouse::move_mouse_to_pos(x, y, moving_time);
+                Ok(())
+            }
+            target_os = "linux" => {
+                self.mouse.move_mouse_to_pos(x, y, moving_time)
+            }
+            target_os = "macos" => {
+                Mouse::move_mouse_to_pos(x, y, moving_time)
+            }
         }
-        #[cfg(target_os = "linux")]
-        return self.mouse.move_mouse_to_pos(x, y, moving_time);
-        #[cfg(target_os = "macos")]
-        return Mouse::move_mouse_to_pos(x, y, moving_time);
     }
 
     /// Move mouse in relative position. Accepts both positive and negative values, where negative X moves left, positive moves right
@@ -79,15 +89,18 @@ impl crate::RustAutoGui {
             ));
         }
 
-        #[cfg(target_os = "windows")]
-        {
-            Mouse::move_mouse_to_pos(x, y, moving_time);
-            Ok(())
+        cfg_select! {
+            target_os = "windows" => {
+                Mouse::move_mouse_to_pos(x, y, moving_time);
+                Ok(())
+            }
+            target_os = "linux" => {
+                self.mouse.move_mouse_to_pos(x, y, moving_time)
+            }
+            target_os = "macos" => {
+                Mouse::move_mouse_to_pos(x, y, moving_time)
+            }
         }
-        #[cfg(target_os = "linux")]
-        return self.mouse.move_mouse_to_pos(x, y, moving_time);
-        #[cfg(target_os = "macos")]
-        return Mouse::move_mouse_to_pos(x, y, moving_time);
     }
 
     /// executes left click down, move to position relative to current position, left click up
@@ -101,25 +114,23 @@ impl crate::RustAutoGui {
                 format!("Out of bounds at positions x,y :{x}, {y}"), // "Mouse movement out of screen boundaries".to_string(),
             ));
         };
-        #[cfg(target_os = "windows")]
-        {
-            Mouse::drag_mouse(x, y, moving_time);
-
-            Ok(())
-        }
-        #[cfg(target_os = "macos")]
-        {
-            if moving_time < 0.5 && !self.suppress_warnings {
-                eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+        cfg_select! {
+            target_os = "windows" => {
+                Mouse::drag_mouse(x, y, moving_time);
+                Ok(())
             }
-            return Mouse::drag_mouse(x as i32, y as i32, moving_time);
-        }
-        #[cfg(target_os = "linux")]
-        {
-            if moving_time < 0.5 && !self.suppress_warnings {
-                eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+            target_os = "macos" => {
+                if moving_time < 0.5 && !self.suppress_warnings {
+                    eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+                }
+                Mouse::drag_mouse(x as i32, y as i32, moving_time)
             }
-            self.mouse.drag_mouse(x as i32, y as i32, moving_time)
+            target_os = "linux" => {
+                if moving_time < 0.5 && !self.suppress_warnings {
+                    eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+                }
+                self.mouse.drag_mouse(x, y, moving_time)
+            }
         }
     }
 
@@ -141,25 +152,23 @@ impl crate::RustAutoGui {
                 "Out of bounds at positions x,y :{x}, {y}"
             )));
         }
-        #[cfg(target_os = "windows")]
-        {
-            Mouse::drag_mouse(x, y, moving_time);
-
-            Ok(())
-        }
-        #[cfg(target_os = "macos")]
-        {
-            if moving_time < 0.5 && !self.suppress_warnings {
-                eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+        cfg_select! {
+            target_os = "windows" => {
+                Mouse::drag_mouse(x, y, moving_time);
+                Ok(())
             }
-            return Mouse::drag_mouse(x as i32, y as i32, moving_time);
-        }
-        #[cfg(target_os = "linux")]
-        {
-            if moving_time < 0.5 && !self.suppress_warnings {
-                eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+            target_os = "macos" => {
+                if moving_time < 0.5 && !self.suppress_warnings {
+                    eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+                }
+                Mouse::drag_mouse(x as i32, y as i32, moving_time)
             }
-            self.mouse.drag_mouse(x as i32, y as i32, moving_time)
+            target_os = "linux" => {
+                if moving_time < 0.5 && !self.suppress_warnings {
+                    eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+                }
+                self.mouse.drag_mouse(x, y, moving_time)
+            }
         }
     }
 
@@ -171,136 +180,199 @@ impl crate::RustAutoGui {
             ));
         }
 
-        #[cfg(target_os = "windows")]
-        {
-            Mouse::drag_mouse(x as i32, y as i32, moving_time);
-
-            Ok(())
-        }
-        #[cfg(target_os = "macos")]
-        {
-            if moving_time < 0.5 && !self.suppress_warnings {
-                eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+        cfg_select! {
+            target_os = "windows" => {
+                Mouse::drag_mouse(x as i32, y as i32, moving_time);
+                Ok(())
             }
-            return Mouse::drag_mouse(x as i32, y as i32, moving_time);
-        }
-        #[cfg(target_os = "linux")]
-        {
-            if moving_time < 0.5 && !self.suppress_warnings {
-                eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+            target_os = "macos" => {
+                if moving_time < 0.5 && !self.suppress_warnings {
+                    eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+                }
+                Mouse::drag_mouse(x as i32, y as i32, moving_time)
             }
+            target_os = "linux" => {
+                if moving_time < 0.5 && !self.suppress_warnings {
+                    eprintln!("WARNING:Small moving time values may cause issues on mouse drag");
+                }
 
-            self.mouse.drag_mouse(x as i32, y as i32, moving_time)
+                self.mouse.drag_mouse(x as i32, y as i32, moving_time)
+            }
         }
     }
 
     /// Mouse click. Choose button Mouseclick::{LEFT,RIGHT,MIDDLE}
     pub fn click(&self, button: MouseClick) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return self.mouse.mouse_click(button);
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::mouse_click(button));
-        #[cfg(target_os = "macos")]
-        return Mouse::mouse_click(button);
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.mouse_click(button)
+            }
+            target_os = "windows" => {
+                Mouse::mouse_click(button);
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::mouse_click(button)
+            }
+        }
     }
 
     /// executes left mouse click
     pub fn left_click(&self) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return self.mouse.mouse_click(MouseClick::LEFT);
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::mouse_click(MouseClick::LEFT));
-        #[cfg(target_os = "macos")]
-        return Mouse::mouse_click(MouseClick::LEFT);
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.mouse_click(MouseClick::LEFT)
+            }
+            target_os = "windows" => {
+                Mouse::mouse_click(MouseClick::LEFT);
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::mouse_click(MouseClick::LEFT)
+            }
+        }
     }
 
     /// executes right mouse click
     pub fn right_click(&self) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return self.mouse.mouse_click(MouseClick::RIGHT);
-        #[cfg(target_os = "macos")]
-        return Mouse::mouse_click(MouseClick::RIGHT);
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::mouse_click(MouseClick::RIGHT));
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.mouse_click(MouseClick::RIGHT)
+            }
+            target_os = "macos" => {
+                Mouse::mouse_click(MouseClick::RIGHT)
+            }
+            target_os = "windows" => {
+                Mouse::mouse_click(MouseClick::RIGHT);
+                Ok(())
+            }
+        }
     }
 
     /// executes middle mouse click
     pub fn middle_click(&self) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return self.mouse.mouse_click(MouseClick::MIDDLE);
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::mouse_click(MouseClick::MIDDLE));
-        #[cfg(target_os = "macos")]
-        return Mouse::mouse_click(MouseClick::MIDDLE);
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.mouse_click(MouseClick::MIDDLE)
+            }
+            target_os = "windows" => {
+                Mouse::mouse_click(MouseClick::MIDDLE);
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::mouse_click(MouseClick::MIDDLE)
+            }
+        }
     }
 
     /// executes double left mouse click
     pub fn double_click(&self) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        {
-            self.mouse.mouse_click(MouseClick::LEFT)?;
-            self.mouse.mouse_click(MouseClick::LEFT)
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.mouse_click(MouseClick::LEFT)?;
+                self.mouse.mouse_click(MouseClick::LEFT)
+            }
+            target_os = "windows" => {
+                Mouse::mouse_click(MouseClick::LEFT);
+                Mouse::mouse_click(MouseClick::LEFT);
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::double_click()
+            }
         }
-        #[cfg(target_os = "windows")]
-        {
-            Mouse::mouse_click(MouseClick::LEFT);
-            Mouse::mouse_click(MouseClick::LEFT);
-            Ok(())
-        }
-        #[cfg(target_os = "macos")]
-        Mouse::double_click()
     }
 
     pub fn click_down(&self, button: MouseClick) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return self.mouse.mouse_down(button);
-        #[cfg(target_os = "macos")]
-        return Mouse::mouse_down(button);
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::mouse_down(button));
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.mouse_down(button)
+            }
+            target_os = "macos" => {
+                Mouse::mouse_down(button)
+            }
+            target_os = "windows" => {
+                Mouse::mouse_down(button);
+                Ok(())
+            }
+        }
     }
     pub fn click_up(&self, button: MouseClick) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return self.mouse.mouse_up(button);
-        #[cfg(target_os = "macos")]
-        return Mouse::mouse_up(button);
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::mouse_up(button));
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.mouse_up(button)
+            }
+            target_os = "macos" => {
+                Mouse::mouse_up(button)
+            }
+            target_os = "windows" => {
+                Mouse::mouse_up(button);
+                Ok(())
+            }
+        }
     }
 
     pub fn scroll_up(&self, intensity: u32) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return Ok(self.mouse.scroll(MouseScroll::UP, intensity));
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::scroll(MouseScroll::UP, intensity));
-        #[cfg(target_os = "macos")]
-        return Mouse::scroll(MouseScroll::UP, intensity);
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.scroll(MouseScroll::UP, intensity);
+                Ok(())
+            }
+            target_os = "windows" => {
+                Mouse::scroll(MouseScroll::UP, intensity);
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::scroll(MouseScroll::UP, intensity)
+            }
+        }
     }
 
     pub fn scroll_down(&self, intensity: u32) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return Ok(self.mouse.scroll(MouseScroll::DOWN, intensity));
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::scroll(MouseScroll::DOWN, intensity));
-        #[cfg(target_os = "macos")]
-        return Mouse::scroll(MouseScroll::DOWN, intensity);
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.scroll(MouseScroll::DOWN, intensity);
+                Ok(())
+            }
+            target_os = "windows" => {
+                Mouse::scroll(MouseScroll::DOWN, intensity);
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::scroll(MouseScroll::DOWN, intensity)
+            }
+        }
     }
 
     pub fn scroll_left(&self, intensity: u32) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return Ok(self.mouse.scroll(MouseScroll::LEFT, intensity));
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::scroll(MouseScroll::LEFT, intensity));
-        #[cfg(target_os = "macos")]
-        return Mouse::scroll(MouseScroll::LEFT, intensity);
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.scroll(MouseScroll::LEFT, intensity);
+                Ok(())
+            }
+            target_os = "windows" => {
+                Mouse::scroll(MouseScroll::LEFT, intensity);
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::scroll(MouseScroll::LEFT, intensity)
+            }
+        }
     }
 
     pub fn scroll_right(&self, intensity: u32) -> Result<(), AutoGuiError> {
-        #[cfg(target_os = "linux")]
-        return Ok(self.mouse.scroll(MouseScroll::RIGHT, intensity));
-        #[cfg(target_os = "windows")]
-        return Ok(Mouse::scroll(MouseScroll::RIGHT, intensity));
-        #[cfg(target_os = "macos")]
-        return Mouse::scroll(MouseScroll::RIGHT, intensity);
+        cfg_select! {
+            target_os = "linux" => {
+                self.mouse.scroll(MouseScroll::RIGHT, intensity);
+                Ok(())
+            }
+            target_os = "windows" => {
+                Mouse::scroll(MouseScroll::RIGHT, intensity);
+                Ok(())
+            }
+            target_os = "macos" => {
+                Mouse::scroll(MouseScroll::RIGHT, intensity)
+            }
+        }
     }
 }

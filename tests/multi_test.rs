@@ -22,12 +22,12 @@ mod multi_test {
     }
 
     fn load_imgs(gui: &mut RustAutoGui) {
-        #[cfg(target_os = "windows")]
-        let insert = 'w';
-        #[cfg(target_os = "macos")]
-        let insert = "m";
-        #[cfg(target_os = "linux")]
-        let insert = 'l';
+        #[cfg()]
+        let insert = cfg_select! {
+            target_os = "windows" => 'w',
+            target_os = "macos" => "m",
+            target_os = "linux" => 'l',
+        };
         let img: image::ImageBuffer<image::Luma<u8>, Vec<u8>> = imgtools::load_image_bw(
             format!("tests/testing_images/gui_tests/step_1_{}.png", insert).as_str(),
         )

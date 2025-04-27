@@ -99,19 +99,18 @@ impl RustAutoGui {
     pub fn new(debug: bool) -> Result<Self, AutoGuiError> {
         // initiation of screen, keyboard and mouse
         // on windows there is no need to share display pointer accross other structs
-        #[cfg(any(target_os = "windows", target_os = "macos"))]
-        let screen = Screen::new()?;
-        #[cfg(any(target_os = "windows", target_os = "macos"))]
-        let keyboard = Keyboard::new();
-        #[cfg(any(target_os = "windows", target_os = "macos"))]
-        let mouse_struct: Mouse = Mouse::new();
-
-        #[cfg(target_os = "linux")]
-        let screen = Screen::new();
-        #[cfg(target_os = "linux")]
-        let keyboard = Keyboard::new(screen.display);
-        #[cfg(target_os = "linux")]
-        let mouse_struct: Mouse = Mouse::new(screen.display, screen.root_window);
+        cfg_select! {
+            any(target_os = "windows", target_os = "macos") => {
+                let screen = Screen::new()?;
+                let keyboard = Keyboard::new();
+                let mouse_struct: Mouse = Mouse::new();
+            }
+            target_os = "linux" => {
+                let screen = Screen::new();
+                let keyboard = Keyboard::new(screen.display);
+                let mouse_struct: Mouse = Mouse::new(screen.display, screen.root_window);
+            }
+        }
 
         // check for env variable to suppress warnings, otherwise set default false value
         let suppress_warnings = env::var("RUSTAUTOGUI_SUPPRESS_WARNINGS")
